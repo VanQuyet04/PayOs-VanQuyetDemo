@@ -11,6 +11,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const { generateSignatureFromData } = require('./coreSignatureUtils.js');
 
+// http://localhost:3000
+// https://payos-demo.onrender.com
+
 // tạo signature để tạo đơn
 function createSignatureForPaymentRequest(data, checksumKey) {
     const requiredFields = {
@@ -75,7 +78,7 @@ app.post('/create-payment', async (req, res) => {
             orderCode,
             amount,
             description,
-            cancelUrl: 'http://localhost:3000/cancel',
+            cancelUrl: 'https://payos-demo.onrender.com/cancel',
             returnUrl: 'http://localhost:3000/success',
             expiredAt: Math.floor(Date.now() / 1000) + 3600, // 1 hour
             signature: ''
