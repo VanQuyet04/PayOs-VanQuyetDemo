@@ -82,8 +82,8 @@ app.post('/create-payment', async (req, res) => {
             orderCode,
             amount,
             description,
-            cancelUrl: 'https://payos-demo-ob5m.onrender.com/success',
-            returnUrl: 'https://payos-demo-ob5m.onrender.com/cancel',
+            cancelUrl: CANCEL_URL,
+            returnUrl: RETURN_URL,
             expiredAt: Math.floor(Date.now() / 1000) + 3600, // 1 hour
             signature: ''
         };
@@ -269,5 +269,5 @@ if (SELF_PING_URL) {
         axios.get(SELF_PING_URL)
             .then(() => console.log(`[PING] ✅ Server đã tự ping lúc ${new Date().toLocaleTimeString()}`))
             .catch(err => console.error('[PING] ❌ Lỗi khi ping:', err.message));
-    }, 30000); // mỗi 10 giây
+    }, 30000); // mỗi 30 giây
 }
