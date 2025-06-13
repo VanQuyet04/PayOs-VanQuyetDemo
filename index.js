@@ -269,5 +269,5 @@ if (SELF_PING_URL) {
         axios.get(SELF_PING_URL)
             .then(() => console.log(`[PING] ✅ Server đã tự ping lúc ${new Date().toLocaleTimeString()}`))
             .catch(err => console.error('[PING] ❌ Lỗi khi ping:', err.message));
-    }, 10000); // mỗi 10 giây
+    }, 30000); // mỗi 10 giây
 }
