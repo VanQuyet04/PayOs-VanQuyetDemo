@@ -11,7 +11,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const { generateSignatureFromData } = require('./coreSignatureUtils.js');
 
-const SERVER_URL = 'https://payos-demo-dthn.onrender.com';
+const SERVER_URL = 'https://payos-demo-ob5m.onrender.com';
 
 const RETURN_URL = `${SERVER_URL}/success`;
 const CANCEL_URL = `${SERVER_URL}/cancel`;
