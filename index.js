@@ -11,7 +11,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const { generateSignatureFromData } = require('./coreSignatureUtils.js');
 
-// http://localhost:3000
+const SERVER_URL = 'https://payos-demo-dthn.onrender.com';
+
+const RETURN_URL = `${SERVER_URL}/success`;
+const CANCEL_URL = `${SERVER_URL}/cancel`;
+const SELF_PING_URL = SERVER_URL;
 
 
 // tạo signature để tạo đơn
@@ -78,8 +82,8 @@ app.post('/create-payment', async (req, res) => {
             orderCode,
             amount,
             description,
-            cancelUrl: process.env.CANCEL_URL,
-            returnUrl: process.env.RETURN_URL,
+            cancelUrl: CANCEL_URL,
+            returnUrl: RETURN_URL,
             expiredAt: Math.floor(Date.now() / 1000) + 3600, // 1 hour
             signature: ''
         };
@@ -260,9 +264,9 @@ app.listen(PORT, () => {
 }); 
 
 // Giữ server Render luôn "thức" (Prevent Sleep)
-if (process.env.SELF_PING_URL) {
+if (SELF_PING_URL) {
     setInterval(() => {
-        axios.get(process.env.SELF_PING_URL)
+        axios.get(SELF_PING_URL)
             .then(() => console.log(`[PING] ✅ Server đã tự ping lúc ${new Date().toLocaleTimeString()}`))
             .catch(err => console.error('[PING] ❌ Lỗi khi ping:', err.message));
     }, 10000); // mỗi 10 giây
