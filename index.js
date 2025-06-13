@@ -82,8 +82,8 @@ app.post('/create-payment', async (req, res) => {
             orderCode,
             amount,
             description,
-            cancelUrl: CANCEL_URL,
-            returnUrl: RETURN_URL,
+            cancelUrl: 'https://payos-demo-ob5m.onrender.com/success',
+            returnUrl: 'https://payos-demo-ob5m.onrender.com/cancel',
             expiredAt: Math.floor(Date.now() / 1000) + 3600, // 1 hour
             signature: ''
         };
