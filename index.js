@@ -12,7 +12,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const { generateSignatureFromData } = require('./coreSignatureUtils.js');
 
 // http://localhost:3000
-// https://payos-demo-qx7f.onrender.com
+
 
 // tạo signature để tạo đơn
 function createSignatureForPaymentRequest(data, checksumKey) {
@@ -78,8 +78,8 @@ app.post('/create-payment', async (req, res) => {
             orderCode,
             amount,
             description,
-            cancelUrl: 'https://payos-demo-qx7f.onrender.com/cancel',
-            returnUrl: 'https://payos-demo-qx7f.onrender.com/success',
+            cancelUrl: process.env.CANCEL_URL,
+            returnUrl: process.env.RETURN_URL,
             expiredAt: Math.floor(Date.now() / 1000) + 3600, // 1 hour
             signature: ''
         };
@@ -258,3 +258,12 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 }); 
+
+// Giữ server Render luôn "thức" (Prevent Sleep)
+if (process.env.SELF_PING_URL) {
+    setInterval(() => {
+        axios.get(process.env.SELF_PING_URL)
+            .then(() => console.log(`[PING] ✅ Server đã tự ping lúc ${new Date().toLocaleTimeString()}`))
+            .catch(err => console.error('[PING] ❌ Lỗi khi ping:', err.message));
+    }, 10000); // mỗi 10 giây
+}
