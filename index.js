@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const crypto = require('crypto');
 const path = require('path');
 
 const app = express();
@@ -10,108 +9,41 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Kiểm tra các biến môi trường
-console.log('Environment variables:');
-console.log('PAYOS_CLIENT_ID:', process.env.PAYOS_CLIENT_ID);
-console.log('PAYOS_API_KEY:', process.env.PAYOS_API_KEY);
-console.log('PAYOS_CHECKSUM_KEY:', process.env.PAYOS_CHECKSUM_KEY);
+const { generateSignatureFromData } = require('./coreSignatureUtils.js');
 
-// Tạo chữ ký cho request
-function createSignature(data, checksumKey) {
-    if (!checksumKey) {
-        throw new Error('Checksum key is required');
-    }
-    
-    // Chỉ lấy các trường cần thiết theo yêu cầu của PayOS
+// tạo signature để tạo đơn
+function createSignatureForPaymentRequest(data, checksumKey) {
     const requiredFields = {
         amount: data.amount,
         cancelUrl: data.cancelUrl,
         description: data.description,
         orderCode: data.orderCode,
-        returnUrl: data.returnUrl
+        returnUrl: data.returnUrl,
     };
-    
-    // Sắp xếp các trường theo alphabet
-    const sortedData = Object.keys(requiredFields)
-        .sort()
-        .reduce((acc, key) => {
-            acc[key] = requiredFields[key];
-            return acc;
-        }, {});
-    
-    // Tạo chuỗi theo format key=value&key=value
-    const signData = Object.entries(sortedData)
-        .map(([key, value]) => `${key}=${value}`)
-        .join('&');
-    
-    console.log('Data for signature:', signData);
-    
-    // Tạo signature bằng HMAC_SHA256
-    const signature = crypto
-        .createHmac('sha256', checksumKey)
-        .update(signData)
-        .digest('hex');
-    
-    console.log('Generated signature:', signature);
-    
-    return signature;
+
+    return generateSignatureFromData(requiredFields, checksumKey);
 }
 
-function sortObjectByKey(obj) {
-  return Object.keys(obj)
-    .sort()
-    .reduce((sorted, key) => {
-      sorted[key] = obj[key];
-      return sorted;
-    }, {});
-}
-
-function convertObjectToQueryString(obj) {
-  return Object.keys(obj)
-    .filter((key) => obj[key] !== undefined)
-    .map((key) => {
-      let value = obj[key];
-
-      if (Array.isArray(value)) {
-        value = JSON.stringify(value.map(sortObjectByKey));
-      }
-
-      if ([null, undefined, 'undefined', 'null'].includes(value)) {
-        value = '';
-      }
-
-      return `${key}=${value}`;
-    })
-    .join('&');
-}
-
+// kiểm tra signature trả về qua webhook
 function createSignatureForWebhook(data, checksumKey) {
-  const sortedData = sortObjectByKey(data);
-  const dataStr = convertObjectToQueryString(sortedData);
-  const signature = crypto
-    .createHmac('sha256', checksumKey)
-    .update(dataStr)
-    .digest('hex');
-
-  return signature;
+    return generateSignatureFromData(data, checksumKey);
 }
 
-
-// Route tạo payment URL
+// Route tạo đơn thanh toán
 app.post('/create-payment', async (req, res) => {
     try {
         const { amount, description, orderCode } = req.body;
-        
+
         // Validate input
         if (!amount || amount < 1000) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Invalid amount',
                 message: 'Amount must be at least 1,000 VND'
             });
         }
 
         if (!description || description.trim().length === 0) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Invalid description',
                 message: 'Description is required'
             });
@@ -119,7 +51,7 @@ app.post('/create-payment', async (req, res) => {
 
         // Validate orderCode
         if (!orderCode || typeof orderCode !== 'number' || orderCode <= 0 || orderCode > 9007199254740991) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Invalid order code',
                 message: 'Order code must be a positive number not exceeding 9007199254740991'
             });
@@ -127,7 +59,7 @@ app.post('/create-payment', async (req, res) => {
 
         // Validate environment variables
         if (!process.env.PAYOS_CLIENT_ID || !process.env.PAYOS_API_KEY || !process.env.PAYOS_CHECKSUM_KEY) {
-            return res.status(500).json({ 
+            return res.status(500).json({
                 error: 'Configuration error',
                 message: 'PayOS credentials are not properly configured'
             });
@@ -151,7 +83,7 @@ app.post('/create-payment', async (req, res) => {
 
         console.log('Payment data before signature:', paymentData);
 
-        paymentData.signature = createSignature(paymentData, process.env.PAYOS_CHECKSUM_KEY);
+        paymentData.signature = createSignatureForPaymentRequest(paymentData, process.env.PAYOS_CHECKSUM_KEY);
 
         console.log('Payment data after signature:', paymentData);
 
@@ -174,8 +106,8 @@ app.post('/create-payment', async (req, res) => {
         console.error('Error response:', error.response?.data);
         console.error('Error status:', error.response?.status);
         console.error('Error headers:', error.response?.headers);
-        
-        res.status(500).json({ 
+
+        res.status(500).json({
             error: 'Failed to create payment',
             details: error.response?.data || error.message
         });
@@ -186,7 +118,7 @@ app.post('/create-payment', async (req, res) => {
 app.get('/success', (req, res) => {
     const { orderCode, status } = req.query;
     console.log('Payment success:', { orderCode, status });
-    
+
     // Gửi file HTML thông báo thành công
     res.send(`
         <!DOCTYPE html>
@@ -243,7 +175,7 @@ app.get('/success', (req, res) => {
 app.get('/cancel', (req, res) => {
     const { orderCode } = req.query;
     console.log('Payment cancelled:', { orderCode });
-    
+
     // Gửi file HTML thông báo hủy
     res.send(`
         <!DOCTYPE html>
@@ -295,29 +227,30 @@ app.get('/cancel', (req, res) => {
     `);
 });
 
+// Route xử lí khi nhận được request từ payos
 app.post('/webhook', (req, res) => {
     const { data, signature } = req.body;
-  
-    console.log('📥 Webhook received data:', data);
-  
-    const calculatedSignature = createSignatureForWebhook(data, process.env.PAYOS_CHECKSUM_KEY);
-  
-    if (signature === calculatedSignature) {
-      const { orderCode, paymentLinkId, amount } = data;
-      const status = data.status || data.desc || 'UNKNOWN'; // fallback nếu không có status
-  
-      console.log('✅ Payment status updated:', { orderCode, paymentLinkId, status, amount });
-  
-      // TODO: xử lý lưu DB, gửi email, v.v.
-      res.status(200).json({ message: 'Webhook processed successfully' });
-    } else {
-      console.error('❌ Invalid webhook signature');
-      res.status(400).json({ error: 'Invalid signature' });
-    }
-  });
-  
-// Express example
 
+    console.log('📥 Webhook received data:', data);
+
+    const calculatedSignature = createSignatureForWebhook(data, process.env.PAYOS_CHECKSUM_KEY);
+
+    if (signature === calculatedSignature) {
+        const { orderCode, paymentLinkId, amount } = data;
+        const status = data.status || data.desc || 'UNKNOWN'; // fallback nếu không có status
+
+        console.log('✅ Payment status updated:', { orderCode, paymentLinkId, status, amount });
+
+        // TODO: xử lý lưu DB, gửi email, v.v.
+        res.status(200).json({ message: 'Webhook processed successfully' });
+    } else {
+        console.error('❌ Invalid webhook signature');
+        res.status(400).json({ error: 'Invalid signature' });
+    }
+});
+
+
+//---------------------------------------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
