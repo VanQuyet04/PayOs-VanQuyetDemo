@@ -11,12 +11,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const { generateSignatureFromData } = require('./coreSignatureUtils.js');
 
-const SERVER_URL = 'https://payos-demo-ob5m.onrender.com';
+// Lấy SERVER_URL từ biến môi trường
+const SERVER_URL = process.env.SERVER_URL;
 
+// Kiểm tra biến môi trường bắt buộc
+if (!SERVER_URL) {
+    console.error('❌ Thiếu biến môi trường bắt buộc: SERVER_URL');
+    process.exit(1);
+}
+
+// Tạo các URL từ SERVER_URL
 const RETURN_URL = `${SERVER_URL}/success`;
 const CANCEL_URL = `${SERVER_URL}/cancel`;
 const SELF_PING_URL = SERVER_URL;
-
 
 // tạo signature để tạo đơn
 function createSignatureForPaymentRequest(data, checksumKey) {
