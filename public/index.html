@@ -6,13 +6,6 @@
     <title>Demo Thanh Toán PayOS</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .payment-iframe {
-            width: 100%;
-            height: 600px;
-            border: none;
-            margin-top: 20px;
-            display: none;
-        }
         .payment-container {
             margin-top: 20px;
         }
@@ -34,9 +27,6 @@
             </div>
             <button type="submit">Thanh toán</button>
         </form>
-        <div class="payment-container">
-            <iframe id="paymentIframe" class="payment-iframe" allow="payment"></iframe>
-        </div>
     </div>
 
     <div class="section">
@@ -65,7 +55,6 @@
             const amount = document.getElementById('amount').value;
             const description = document.getElementById('description').value;
             const orderCode = Math.floor(Math.random() * 1000000000);
-            const iframe = document.getElementById('paymentIframe');
 
             try {
                 const response = await fetch(`${SERVER_URL}/create-payment`, {
@@ -84,9 +73,8 @@
                 console.log('Response data:', data);
 
                 if (data.code === '00' && data.data?.checkoutUrl) {
-                    // Hiển thị iframe và load trang thanh toán
-                    iframe.style.display = 'block';
-                    iframe.src = data.data.checkoutUrl;
+                    // Chuyển hướng trực tiếp đến trang thanh toán
+                    window.location.href = data.data.checkoutUrl;
                 } else {
                     alert('Có lỗi xảy ra khi tạo thanh toán: ' + (data.desc || data.error));
                 }
