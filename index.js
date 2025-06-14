@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const { generateSignatureFromData } = require('./coreSignatureUtils.js');
+const { generateSignatureFromData } = require('./utils/coreSignatureUtils');
 
 // Lấy SERVER_URL từ biến môi trường
 const SERVER_URL = process.env.SERVER_URL;
@@ -163,6 +163,30 @@ app.post('/webhook', (req, res) => {
     }
 });
 
+app.get("/:orderId", async function (req, res) {
+    try {
+      const order = await payOS.getPaymentLinkInfomation(req.params.orderId);
+      if (!order) {
+        return res.json({
+          error: -1,
+          message: "failed",
+          data: null,
+        });
+      }
+      return res.json({
+        error: 0,
+        message: "ok",
+        data: order,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.json({
+        error: -1,
+        message: "failed",
+        data: null,
+      });
+    }
+  });
 
 //---------------------------------------------------
 const PORT = process.env.PORT || 3000;

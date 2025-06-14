@@ -42,4 +42,25 @@ button:hover {
 
 .section h2 {
     margin-top: 0;
+}
+
+.result-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.result-section h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+#orderDetails p {
+    margin: 8px 0;
+    line-height: 1.4;
+}
+
+#orderDetails strong {
+    color: #4CAF50;
 } 
