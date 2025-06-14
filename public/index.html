@@ -105,6 +105,15 @@
                         <p><strong>Mô tả:</strong> ${data.data.description}</p>
                         <p><strong>Trạng thái:</strong> ${data.data.status}</p>
                         <p><strong>Thời gian tạo:</strong> ${new Date(data.data.createdAt).toLocaleString('vi-VN')}</p>
+                        <p><strong>Link thanh toán:</strong> <a href="${data.data.checkoutUrl}" target="_blank">${data.data.checkoutUrl}</a></p>
+                        ${data.data.counterAccount ? `
+                            <p><strong>Tài khoản đối ứng:</strong></p>
+                            <ul>
+                                <li>Ngân hàng: ${data.data.counterAccount.bankName}</li>
+                                <li>Số tài khoản: ${data.data.counterAccount.accountNumber}</li>
+                                <li>Chủ tài khoản: ${data.data.counterAccount.accountName}</li>
+                            </ul>
+                        ` : ''}
                     `;
                 } else {
                     alert('Không tìm thấy thông tin đơn hàng: ' + (data.desc || data.error));

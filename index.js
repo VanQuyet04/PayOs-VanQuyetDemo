@@ -163,30 +163,56 @@ app.post('/webhook', (req, res) => {
     }
 });
 
-app.get("/:orderId", async function (req, res) {
+// Route lấy thông tin đơn hàng
+app.get('/get-order/:orderCode', async (req, res) => {
     try {
-      const order = await payOS.getPaymentLinkInfomation(req.params.orderId);
-      if (!order) {
-        return res.json({
-          error: -1,
-          message: "failed",
-          data: null,
-        });
-      }
-      return res.json({
-        error: 0,
-        message: "ok",
-        data: order,
-      });
+        const { orderCode } = req.params;
+
+        // Validate orderCode
+        if (!orderCode) {
+            return res.status(400).json({
+                code: "01",
+                desc: "Invalid order code",
+                data: null
+            });
+        }
+
+        // Validate environment variables
+        if (!process.env.PAYOS_CLIENT_ID || !process.env.PAYOS_API_KEY) {
+            return res.status(500).json({
+                code: "01",
+                desc: "PayOS credentials are not properly configured",
+                data: null
+            });
+        }
+
+        const response = await axios.get(
+            `https://api-merchant.payos.vn/v2/payment-requests/${orderCode}`,
+            {
+                headers: {
+                    'x-client-id': process.env.PAYOS_CLIENT_ID,
+                    'x-api-key': process.env.PAYOS_API_KEY,
+                }
+            }
+        );
+
+        console.log('PayOS API response:', response.data);
+        res.json(response.data);
     } catch (error) {
-      console.log(error);
-      return res.json({
-        error: -1,
-        message: "failed",
-        data: null,
-      });
+        console.error('Error getting order info:');
+        console.error('Error message:', error.message);
+        console.error('Error response:', error.response?.data);
+        console.error('Error status:', error.response?.status);
+
+        // Trả về lỗi theo format của PayOS
+        res.status(error.response?.status || 500).json({
+            code: error.response?.data?.code || "01",
+            desc: error.response?.data?.desc || "Failed to get order info",
+            data: null
+        });
     }
-  });
+});
+
 
 //---------------------------------------------------
 const PORT = process.env.PORT || 3000;
