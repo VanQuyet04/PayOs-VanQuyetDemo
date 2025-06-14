@@ -125,113 +125,14 @@ app.post('/create-payment', async (req, res) => {
 app.get('/success', (req, res) => {
     const { orderCode, status } = req.query;
     console.log('Payment success:', { orderCode, status });
-
-    // Gửi file HTML thông báo thành công
-    res.send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Thanh toán thành công</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    margin: 0;
-                    background-color: #f0f0f0;
-                }
-                .container {
-                    text-align: center;
-                    padding: 20px;
-                    background-color: white;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                }
-                .success-icon {
-                    color: #4CAF50;
-                    font-size: 48px;
-                    margin-bottom: 20px;
-                }
-                .button {
-                    display: inline-block;
-                    padding: 10px 20px;
-                    background-color: #4CAF50;
-                    color: white;
-                    text-decoration: none;
-                    border-radius: 4px;
-                    margin-top: 20px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="success-icon">✓</div>
-                <h1>Thanh toán thành công!</h1>
-                <p>Mã đơn hàng: ${orderCode}</p>
-                <p>Trạng thái: ${status}</p>
-                <a href="/" class="button">Quay lại trang chủ</a>
-            </div>
-        </body>
-        </html>
-    `);
+    res.sendFile(path.join(__dirname, 'public', 'success.html'));
 });
 
 // Route xử lý khi hủy thanh toán
 app.get('/cancel', (req, res) => {
     const { orderCode } = req.query;
     console.log('Payment cancelled:', { orderCode });
-
-    // Gửi file HTML thông báo hủy
-    res.send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Hủy thanh toán</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    margin: 0;
-                    background-color: #f0f0f0;
-                }
-                .container {
-                    text-align: center;
-                    padding: 20px;
-                    background-color: white;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                }
-                .cancel-icon {
-                    color: #f44336;
-                    font-size: 48px;
-                    margin-bottom: 20px;
-                }
-                .button {
-                    display: inline-block;
-                    padding: 10px 20px;
-                    background-color: #f44336;
-                    color: white;
-                    text-decoration: none;
-                    border-radius: 4px;
-                    margin-top: 20px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="cancel-icon">✕</div>
-                <h1>Đã hủy thanh toán</h1>
-                <p>Mã đơn hàng: ${orderCode}</p>
-                <a href="/" class="button">Quay lại trang chủ</a>
-            </div>
-        </body>
-        </html>
-    `);
+    res.sendFile(path.join(__dirname, 'public', 'cancel.html'));
 });
 
 // Route xử lí khi nhận được request từ payos
