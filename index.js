@@ -23,7 +23,6 @@ if (!SERVER_URL) {
 // Tạo các URL từ SERVER_URL
 const RETURN_URL = `${SERVER_URL}/success`;
 const CANCEL_URL = `${SERVER_URL}/cancel`;
-const SELF_PING_URL = SERVER_URL;
 
 // tạo signature để tạo đơn
 function createSignatureForPaymentRequest(data, checksumKey) {
@@ -172,9 +171,9 @@ app.listen(PORT, () => {
 }); 
 
 // Giữ server Render luôn "thức" (Prevent Sleep)
-if (SELF_PING_URL) {
+if (SERVER_URL) {
     setInterval(() => {
-        axios.get(SELF_PING_URL)
+        axios.get(SERVER_URL)
             .then(() => console.log(`[PING] ✅ Server đã tự ping lúc ${new Date().toLocaleTimeString()}`))
             .catch(err => console.error('[PING] ❌ Lỗi khi ping:', err.message));
     }, 30000); // mỗi 30 giây
